@@ -1,0 +1,15 @@
+To get access of backup.sql file:
+
+make sure that .tar and .sql file will be on the same place after that go to docker :
+
+1. To copy the .sql file run this command with your file path:
+
+docker cp /Users/satya/Documents/Abhilasha/OTH_Sem3/MDNE/MDNE_Project/backup.sql some_postgres:/tmp/backup.sql
+
+2. to create container: docker exec -it some_postgres bash
+3. To go to specific image in docker: psql -U postgres
+4.connect with the database: psql -U postgres -d smart_home -f /tmp/backup.sql
+5. Access the daabase : psql -U postgres -d smart_home
+6: To list the tables : \dt
+7: to see the content in the .sql file: psql -U postgres -d smart_home -f /tmp/backup.sql
+8: then to check tables again : \dt
