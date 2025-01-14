@@ -1,0 +1,105 @@
+-- appliance table creation 
+
+CREATE TABLE Appliances (
+    ApplianceID SERIAL PRIMARY KEY,   
+    Name VARCHAR(255) NOT NULL,        
+    HouseID INT,                       
+    CONSTRAINT fk_house_id FOREIGN KEY (HouseID) REFERENCES houses(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+-- add data to appliance table 
+-- Inserting 11 appliances into the Appliance table
+INSERT INTO Appliance (Name, HouseID) VALUES
+('Washing Machine', 1),
+('Washing Machine', 2),
+('Refrigerator', 1),
+('Dishwasher', 2),
+('Microwave', 2),
+('Air Conditioner', 3),
+('Heater', 4),
+('Water Heater', 4),
+('Fan', 5),
+('TV', 5),
+('Oven', 6);
+
+SELECT * FROM appliance; 
+
+--create sensor table 
+CREATE TABLE Sensors (
+    SensorID SERIAL PRIMARY KEY,      -- Automatically generates unique IDs for SensorID
+    Name VARCHAR(255) NOT NULL,       -- Name of the sensor
+    Metadata TEXT,                    -- Optional metadata for sensor
+    HouseID INT,                      -- Foreign key referencing Houses
+    ApplianceID INT,                  -- Foreign key referencing Appliance
+    CONSTRAINT fk_house_id  FOREIGN KEY (HouseID) REFERENCES Houses(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_appliance_id  FOREIGN KEY (ApplianceID) REFERENCES Appliances(ApplianceID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- insert data into sensors table 42 DATA
+INSERT INTO Sensors (Name, Metadata, HouseID, ApplianceID) VALUES
+('Temperature', 'Sensor monitoring the temperature of the room', 1, 1),
+('Humidity', 'Sensor monitoring the humidity level of the room', 1, 1),
+('Pressure', 'Sensor monitoring atmospheric pressure', 1, 1),
+('Temperature', 'Sensor monitoring the temperature of the living room', 1, 2),
+('Humidity', 'Sensor monitoring the humidity level of the living room', 1, 2),
+('Pressure', 'Sensor monitoring atmospheric pressure', 1, 2),
+('Temperature', 'Sensor monitoring the kitchen temperature', 1, 3),
+('Humidity', 'Sensor monitoring the humidity level in the kitchen', 1, 3),
+('Pressure', 'Sensor monitoring atmospheric pressure', 1, 3),
+('Temperature', 'Sensor monitoring the bedroom temperature', 2, 4),
+('Humidity', 'Sensor monitoring the humidity level in the bedroom', 2, 4),
+('Pressure', 'Sensor monitoring atmospheric pressure', 2, 4),
+('Temperature', 'Sensor monitoring temperature in office', 2, 5),
+('Humidity', 'Sensor monitoring the humidity in office', 2, 5),
+('Pressure', 'Sensor monitoring atmospheric pressure', 2, 5),
+('Temperature', 'Sensor monitoring temperature in hallway', 2, 6),
+('Humidity', 'Sensor monitoring humidity level in hallway', 2, 6),
+('Pressure', 'Sensor monitoring atmospheric pressure', 2, 6),
+('Temperature', 'Sensor monitoring temperature in bathroom', 3, 7),
+('Humidity', 'Sensor monitoring humidity in bathroom', 3, 7),
+('Pressure', 'Sensor monitoring atmospheric pressure', 3, 7),
+('Temperature', 'Sensor monitoring temperature in garage', 3, 8),
+('Humidity', 'Sensor monitoring humidity in garage', 3, 8),
+('Pressure', 'Sensor monitoring atmospheric pressure', 3, 8),
+('Temperature', 'Sensor monitoring temperature in porch', 4, 9),
+('Humidity', 'Sensor monitoring humidity in porch', 4, 9),
+('Pressure', 'Sensor monitoring atmospheric pressure', 4, 9),
+('Temperature', 'Sensor monitoring temperature in hallway', 4, 10),
+('Humidity', 'Sensor monitoring humidity in hallway', 4, 10),
+('Pressure', 'Sensor monitoring atmospheric pressure', 4, 10),
+('Temperature', 'Sensor monitoring the temperature of the room', 5, 1),
+('Humidity', 'Sensor monitoring the humidity level of the room', 5, 1),
+('Pressure', 'Sensor monitoring atmospheric pressure', 5, 1),
+('Temperature', 'Sensor monitoring the temperature of the living room', 5, 2),
+('Humidity', 'Sensor monitoring the humidity level of the living room', 5, 2),
+('Pressure', 'Sensor monitoring atmospheric pressure', 5, 2),
+('Temperature', 'Sensor monitoring the kitchen temperature', 6, 3),
+('Humidity', 'Sensor monitoring the humidity level in the kitchen', 6, 3),
+('Pressure', 'Sensor monitoring atmospheric pressure', 6, 3),
+('Temperature', 'Sensor monitoring the bedroom temperature', 6, 4),
+('Humidity', 'Sensor monitoring the humidity level in the bedroom', 6, 4),
+('Pressure', 'Sensor monitoring atmospheric pressure', 6, 4);
+
+ 
+postgrs
+download postgres cli  E:\PostgreSQL\17\bin
+add prosgres in the compose file with volumes defined in the same working folder
+have all the database files .sql and .tar in the same folder 
+
+####copy data from .sql file to the current volume 
+docker cp E:\Smart_Home\app\postgres_custom\backup.sql postgres:/backup.sql
+
+####Execute the postgres container and set the database with username and dbname
+docker exec -it postgres psql -U postgres -d smart_home -f /backup.sql 
+
+q - quit from the dump file 
+
+###################See the databases(enter the bash))
+docker exec -it postgres bash
+\l 
+
+###################connect to a database within bash
+\c smart_home
+##################see the table names inside this database
+\dt
