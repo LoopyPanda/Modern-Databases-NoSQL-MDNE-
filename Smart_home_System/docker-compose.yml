@@ -42,6 +42,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
     networks:
       - smart_home_network
 
