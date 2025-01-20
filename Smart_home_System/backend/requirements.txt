@@ -5,3 +5,4 @@ redis
 influxdb-client
 paho-mqtt
 python-dotenv
+passlib

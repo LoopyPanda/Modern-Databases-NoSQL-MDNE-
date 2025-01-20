@@ -1,8 +1,21 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from backend.db.connection import get_db_connection
 from psycopg2.extras import DictCursor
+from auth import authenticate_user, authorize_role
 
+
+# Router instantiated here
 router = APIRouter()
+
+@router.get("/houses")
+def get_all_houses(user=Depends(authenticate_user)):
+    return {"message": f"Houses retrieved successfully for {user['username']}"}
+
+
+@router.post("/houses", dependencies=[Depends(authorize_role("Admin"))])
+def create_house(house_data: dict):
+    return {"message": "House created successfully"}
+
 
 # Fetch all houses (Read Operation)
 @router.get("/")

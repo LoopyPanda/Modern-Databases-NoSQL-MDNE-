@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 BROKER = "mqtt-broker"
 PORT = 1883
 TOPIC_PREFIX = "sensor"  # Topic prefix for sensors
-SENSOR_IDS = range(1, 43)  # SensorIDs from 1 to 42
+SENSOR_IDS = range(1, 7)  # Total of 6 sensors
 
 # Redis Configuration
 REDIS_HOST = "redis"
@@ -20,9 +20,6 @@ cipher = Fernet(key)
 
 # Connect to Redis
 redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
-
-# Expected keys for validation
-EXPECTED_KEYS = ["sensor_id", "temperature", "humidity", "pressure", "light", "sound", "vibration", "timestamp"]
 
 # Callback for connection success
 def on_connect(client, userdata, flags, rc):
@@ -53,7 +50,8 @@ def on_message(client, userdata, message):
             print(f"Received JSON data: {sensor_data}")
 
             # Validate JSON structure
-            if not all(key in sensor_data for key in EXPECTED_KEYS):
+            required_keys = ["sensor_id", "sensor_name", "timestamp"]
+            if not all(key in sensor_data for key in required_keys):
                 raise ValueError(f"Incomplete JSON data: {sensor_data}")
 
             # Save the data to Redis (per SensorID)

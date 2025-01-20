@@ -34,6 +34,9 @@ CREATE TABLE Appliance (
     FOREIGN KEY (HouseID) REFERENCES House(HouseID)
 );
 
+--Add password to the user table 
+ALTER TABLE Users ADD Password VARCHAR(255);
+
 -- Drop the existing foreign key constraints (if any)
 ALTER TABLE HouseUser DROP CONSTRAINT IF EXISTS houseuser_houseid_fkey;
 ALTER TABLE HouseUser DROP CONSTRAINT IF EXISTS houseuser_userid_fkey;

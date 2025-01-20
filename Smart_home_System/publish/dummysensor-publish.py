@@ -9,7 +9,7 @@ from cryptography.fernet import Fernet
 BROKER = "mqtt-broker"
 PORT = 1883
 TOPIC_PREFIX = "sensor"  # Topic prefix for sensors
-SENSOR_IDS = range(1, 43)  # SensorIDs from 1 to 42
+SENSOR_IDS = range(1, 7)  # Total of 6 sensors
 
 # Redis Configuration
 REDIS_HOST = "redis"
@@ -23,48 +23,80 @@ cipher = Fernet(key)
 # Connect to Redis
 redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 
-# Sensor type IDs
-SENSOR_TYPE_IDS = {
-    "temperature": 101,
-    "humidity": 102,
-    "pressure": 103,
-    "light": 104,
-    "sound": 105,
-    "vibration": 106,
+# Redis memory configuration
+redis_client.config_set("maxmemory", "256mb")  # Set max memory to 256 MB
+redis_client.config_set("maxmemory-policy", "allkeys-lru")  # Evict least recently used keys if memory is full
+
+# Sensor type categories and fields
+SENSOR_TYPES = {
+    1: {
+        "name": "Fire/CO Detection",
+        "fields": {
+            "co_detection": lambda: round(random.uniform(0.0, 10.0), 2),  # CO level in air
+            "smart_level": lambda: random.choice(["Low", "Moderate", "High"]),
+            "temperature": lambda: round(random.uniform(20.0, 25.0), 2),
+            "humidity": lambda: round(random.uniform(30.0, 50.0), 2),
+            "timestamp": lambda: time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    },
+    2: {
+        "name": "Leak/Moisture Detection",
+        "fields": {
+            "moisture_detection_level": lambda: random.choice(["Dry", "Wet", "Flood"]),
+            "leakage": lambda: random.choice(["No Leak", "Minor Leak", "Major Leak"]),
+            "timestamp": lambda: time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    },
+    3: {
+        "name": "Window & Door Open/Close Detection",
+        "fields": {
+            "status": lambda: random.choice(["Open", "Close"]),
+            "timestamp": lambda: time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    },
+    4: {
+        "name": "Smart Thermostat",
+        "fields": {
+            "temperature": lambda: round(random.uniform(18.0, 28.0), 2),
+            "humidity": lambda: round(random.uniform(40.0, 60.0), 2),
+            "timestamp": lambda: time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    },
+    5: {
+        "name": "Motion Sensors",
+        "fields": {
+            "motion": lambda: random.choice(["Detected", "Not Detected"]),
+            "temperature": lambda: round(random.uniform(20.0, 30.0), 2),
+            "light": lambda: round(random.uniform(100.0, 800.0), 2),
+            "humidity": lambda: round(random.uniform(30.0, 50.0), 2),
+            "vibration": lambda: round(random.uniform(0.01, 0.10), 3),
+            "uv": lambda: round(random.uniform(0.0, 3.0), 2),
+            "timestamp": lambda: time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    },
+    6: {
+        "name": "Smart Garage Door",
+        "fields": {
+            "status": lambda: random.choice(["Door Open", "Door Close"]),
+            "timestamp": lambda: time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    }
 }
 
 # Publish dummy sensor data for all sensors
 def publish_dummy_data():
     while True:
         for sensor_id in SENSOR_IDS:
-            # Create dummy sensor data with multiple types
+            # Get sensor details
+            sensor_type = SENSOR_TYPES.get(sensor_id, {})
+            if not sensor_type:
+                continue
+
+            # Generate sensor data dynamically, ensuring 'sensor_name' comes first
             sensor_data = {
+                "sensor_name": sensor_type["name"],
                 "sensor_id": sensor_id,
-                "temperature": {
-                    "value": round(random.uniform(20.0, 25.0), 2),
-                    "type_id": SENSOR_TYPE_IDS["temperature"]
-                },
-                "humidity": {
-                    "value": round(random.uniform(30.0, 50.0), 2),
-                    "type_id": SENSOR_TYPE_IDS["humidity"]
-                },
-                "pressure": {
-                    "value": round(random.uniform(1000, 1020), 2),
-                    "type_id": SENSOR_TYPE_IDS["pressure"]
-                },
-                "light": {
-                    "value": round(random.uniform(300, 800), 2),
-                    "type_id": SENSOR_TYPE_IDS["light"]
-                },
-                "sound": {
-                    "value": round(random.uniform(40, 80), 2),
-                    "type_id": SENSOR_TYPE_IDS["sound"]
-                },
-                "vibration": {
-                    "value": round(random.uniform(0.01, 0.10), 2),
-                    "type_id": SENSOR_TYPE_IDS["vibration"]
-                },
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                **{field: generator() for field, generator in sensor_type["fields"].items()}
             }
 
             # Serialize and encrypt the data
@@ -73,7 +105,7 @@ def publish_dummy_data():
 
             # Save encrypted data to Redis
             redis_key = f"sensor{sensor_id}:latest_sensor_data"
-            redis_client.set(redis_key, encrypted_message.decode())
+            redis_client.set(redis_key, encrypted_message.decode(), ex=3600)  # Expire data after 1 hour
 
             # Publish encrypted payload to MQTT
             topic = f"{TOPIC_PREFIX}{sensor_id}/data"
